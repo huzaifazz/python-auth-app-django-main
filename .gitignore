@@ -1,0 +1,7 @@
+# django_auth_app
+.venv/
+__pycache__/
+*.pyc
+db.sqlite3
+# MySQL database files
+*.sql

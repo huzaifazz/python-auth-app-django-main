@@ -1,5 +1,6 @@
 import jwt, datetime
 from django.conf import settings
+from .models import RefreshSession
 
 def generate_jwt(user):
     payload = {
@@ -15,6 +16,8 @@ def decode_jwt(token):
     except jwt.ExpiredSignatureError:
         return None
 
+
+
 def generate_tokens(user):
     access_payload = {
         'id': user.id,
@@ -27,7 +30,14 @@ def generate_tokens(user):
         'iat': datetime.datetime.utcnow(),
         'type': 'refresh'
     }
+
+    refresh_token = jwt.encode(refresh_payload, settings.SECRET_KEY, algorithm='HS256')
+    
+    # Save to DB
+    RefreshSession.objects.create(user=user, token=refresh_token)
+
     return {
         'access': jwt.encode(access_payload, settings.SECRET_KEY, algorithm='HS256'),
-        'refresh': jwt.encode(refresh_payload, settings.SECRET_KEY, algorithm='HS256')
+        'refresh': refresh_token
     }
+

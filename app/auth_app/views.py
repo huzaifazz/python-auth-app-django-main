@@ -6,6 +6,7 @@ from .utils import generate_jwt, decode_jwt, generate_tokens
 from rest_framework.permissions import IsAuthenticated
 from .authentication import JWTAuthentication
 from django.contrib.auth.models import User
+from .signals import refresh_token_used, user_logged_in, secure_data_token_used
 
 
 class LoginView(APIView):
@@ -14,6 +15,7 @@ class LoginView(APIView):
         password = request.data.get('password')
         user = authenticate(username=username, password=password)
         if user:
+            user_logged_in.send(sender=LoginView, user=user, request=request)
             token = generate_tokens(user)
             return Response({'token': token}, status=status.HTTP_200_OK)
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -21,11 +23,12 @@ class LoginView(APIView):
 class SecureDataView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
-
-    def get(self, request):
+    def post(self, request):
+        secure_data_token_used.send(sender=SecureDataView, request=request)
         return Response({
             'message': f'Hello, {request.user.username}. You’ve accessed a protected endpoint.'
         }, status=status.HTTP_200_OK)
+
         
 class RefreshTokenView(APIView):
     def post(self, request):
@@ -34,7 +37,10 @@ class RefreshTokenView(APIView):
         if not payload or payload.get('type') != 'refresh':
             return Response({'error': 'Invalid refresh token'}, status=401)
         user = User.objects.filter(id=payload['id']).first()
+        
         if not user:
             return Response({'error': 'User not found'}, status=404)
-        tokens = generate_tokens(user)
+        
+        refresh_token_used.send(sender=RefreshTokenView, user=user, request=request)
+        tokens = generate_jwt(user)
         return Response(tokens)

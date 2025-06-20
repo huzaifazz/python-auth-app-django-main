@@ -1,6 +1,7 @@
 import jwt, datetime
 from django.conf import settings
 from .models import RefreshSession
+from itsdangerous import URLSafeTimedSerializer
 
 def generate_jwt(user):
     payload = {
@@ -31,13 +32,27 @@ def generate_tokens(user):
         'type': 'refresh'
     }
 
+    access_token = jwt.encode(access_payload, settings.SECRET_KEY, algorithm='HS256')
     refresh_token = jwt.encode(refresh_payload, settings.SECRET_KEY, algorithm='HS256')
-    
-    # Save to DB
-    RefreshSession.objects.create(user=user, token=refresh_token)
+
+    # Save session
+    RefreshSession.objects.create(user=user, token=refresh_token, access_token=access_token)
 
     return {
-        'access': jwt.encode(access_payload, settings.SECRET_KEY, algorithm='HS256'),
+        'access': access_token,
         'refresh': refresh_token
     }
 
+
+def generate_email_token(user):
+    serializer = URLSafeTimedSerializer(settings.SECRET_KEY)
+    return serializer.dumps(user.email, salt='email-verify')
+
+
+def verify_email_token(token, expiration=3600):
+    serializer = URLSafeTimedSerializer(settings.SECRET_KEY)
+    try:
+        email = serializer.loads(token, salt='email-verify', max_age=expiration)
+        return email
+    except Exception:
+        return None

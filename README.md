@@ -107,11 +107,3 @@ A robust Django authentication app providing JWT-based authentication, email ver
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-- [auth_app/views.py](app/auth_app/views.py)  
-- [auth_app/models.py](app/auth_app/models.py)  
-- [auth_app/serializers.py](app/auth_app/serializers.py)  
-- [auth_app/utils.py](app/auth_app/utils.py)  
-- [auth_app/signals.py](app/auth_app/signals.py)  
-- [auth_app/admin.py](app/auth_app/admin.py)  
-- [auth_app/urls.py](app/auth_app/urls.py)

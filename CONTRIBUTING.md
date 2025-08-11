@@ -1,4 +1,3 @@
-
 # Contributing to python-auth-app-django-main
 
 Thank you for your interest in contributing to the python-auth-app-django-main project! We welcome contributions of all kinds, including bug reports, feature requests, documentation improvements, and code enhancements.
